@@ -1,9 +1,9 @@
 module "vpc" {
   source = "git::https://github.com/bendbennett/aws-vpc"
 
-  region = var.vpc_region
+  vpc_region = var.vpc_region
 
-  cidr_block = var.vpc_cidr_block
+  vpc_cidr_block = var.vpc_cidr_block
 }
 
 module "subnet-public" {
