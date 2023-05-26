@@ -9,9 +9,9 @@ module "vpc" {
 module "subnet-public" {
   source = "git::https://github.com/bendbennett/aws-subnet"
 
-  subnet_region = var.subnet_region
+  region = var.vpc_region
 
-  subnet_availability_zones = var.subnet_availability_zones
-  subnet_cidr_blocks = var.subnet_cidr_blocks_public
+  availability_zones = var.subnet_availability_zones
+  cidr_blocks = var.subnet_cidr_blocks_public
   vpc_id = module.vpc.vpc_id
 }
