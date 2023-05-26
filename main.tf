@@ -1,20 +1,7 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.region
-}
-
 module "vpc" {
   source = "git::https://github.com/bendbennett/aws-vpc"
 
-  vpc_cidr_block = var.vpc_cidr_block
+  cidr_block = var.vpc_cidr_block
 }
 
 module "subnet-public" {
