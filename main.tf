@@ -9,44 +9,14 @@ resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
 }
 
-resource "aws_subnet" "subnet_public" {
-  count = length(var.subnet_cidr_blocks_public)
+module "subnet-public" {
+  source = "git::https://github.com/bendbennett/aws-subnet"
 
-  availability_zone = element(var.availability_zones, count.index)
-  cidr_block = element(var.subnet_cidr_blocks_public, count.index)
+  availability_zones = var.availability_zones
+  cidr_blocks = var.subnet_cidr_blocks_public
+  internet_gateway_id = aws_internet_gateway.internet_gateway.id
+  public_subnet = true
   vpc_id = aws_vpc.vpc.id
-}
-
-resource "aws_route_table" "route_table" {
-  count = length(var.subnet_cidr_blocks_public)
-
-  vpc_id = aws_vpc.vpc.id
-}
-
-resource "aws_route" "route_public" {
-  count = length(var.subnet_cidr_blocks_public)
-
-  route_table_id = element(aws_route_table.route_table.*.id, count.index)
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.internet_gateway.id
-}
-
-resource "aws_route_table_association" "route_table_association" {
-  count = length(var.subnet_cidr_blocks_public)
-
-  route_table_id = element(aws_route_table.route_table.*.id, count.index)
-  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
-}
-
-resource "aws_eip" "eip" {
-  count = length(var.subnet_cidr_blocks_public)
-}
-
-resource "aws_nat_gateway" "nat_gateway" {
-  count = length(var.subnet_cidr_blocks_public)
-
-  allocation_id = element(aws_eip.eip.*.id, count.index)
-  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
 }
 
 module "subnet-private" {
@@ -54,7 +24,7 @@ module "subnet-private" {
 
   availability_zones = var.availability_zones
   cidr_blocks = var.subnet_cidr_blocks_private
-  nat_gateway_ids = aws_nat_gateway.nat_gateway.*.id
+  nat_gateway_ids = module.subnet-public.nat_gateway_ids
   public_subnet = false
   vpc_id = aws_vpc.vpc.id
 }
