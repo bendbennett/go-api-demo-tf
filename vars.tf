@@ -1,7 +1,5 @@
 variable "availability_zones" {}
 
-variable "iam_role_name" {}
-
 variable "launch_configuration_policy_actions_resources" {}
 
 variable "launch_configuration_role_policy_identifiers" {}
