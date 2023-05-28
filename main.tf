@@ -45,8 +45,4 @@ resource "aws_elb" "load_balancer" {
     lb_protocol = "https"
     ssl_certificate_id = var.ssl_certificate_id
   }
-  cross_zone_load_balancing = var.load_balancer_cross_zone_load_balancing
-  name = var.load_balancer_name
-  security_groups = [module.security-group-load-balancer.security_group_id]
-  subnets = module.subnet-public.subnet_ids
 }
