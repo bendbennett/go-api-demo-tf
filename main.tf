@@ -53,7 +53,7 @@ resource "aws_elb" "load_balancer" {
   cross_zone_load_balancing = var.load_balancer_cross_zone_load_balancing
   name = var.load_balancer_name
   security_groups = [module.security-group-load-balancer.security_group_id]
-  subnets = aws_subnet.subnet_public.*.id
+  subnets = module.subnet-public.subnet_ids
 }
 
 module "security-group-ec2-instance" {
