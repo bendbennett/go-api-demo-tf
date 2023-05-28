@@ -6,7 +6,11 @@ variable "load_balancer_name" {}
 
 variable "region" {}
 
+variable "security_group_rules_cidr_blocks_ec2_instance_web" {}
+
 variable "security_group_rules_cidr_blocks_load_balancer_web" {}
+
+variable "security_group_rules_source_security_group_id_ec2_instance_web" {}
 
 variable "ssl_certificate_id" {}
 

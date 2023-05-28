@@ -33,13 +33,13 @@ module "security-group-load-balancer" {
 
 resource "aws_elb" "load_balancer" {
   listener {
-    instance_port = 80
+    instance_port = 3000
     instance_protocol = "http"
     lb_port = 80
     lb_protocol = "http"
   }
   listener {
-    instance_port = 80
+    instance_port = 3000
     instance_protocol = "http"
     lb_port = 443
     lb_protocol = "https"
@@ -49,4 +49,13 @@ resource "aws_elb" "load_balancer" {
   name = var.load_balancer_name
   security_groups = [module.security-group-load-balancer.security_group_id]
   subnets = module.subnet-public.subnet_ids
+}
+
+module "security-group-ec2-instance" {
+  source = "git::https://github.com/bendbennett/aws-security-group"
+
+  security_group_rules_source_security_group_id = var.security_group_rules_source_security_group_id_ec2_instance_web
+  source_security_group_ids = [module.security-group-load-balancer.security_group_id]
+  security_group_rules_cidr_blocks = var.security_group_rules_cidr_blocks_ec2_instance_web
+  vpc_id = module.vpc.vpc_id
 }
