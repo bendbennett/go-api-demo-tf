@@ -104,7 +104,11 @@ data "template_file" "launch_configuration_web_user_data" {
 }
 
 resource "aws_launch_configuration" "launch_configuration" {
+  associate_public_ip_address = var.launch_configuration_associate_public_ip_address
+  iam_instance_profile = aws_iam_instance_profile.iam_instance_profile.id
   image_id = var.launch_configuration_image_id
   instance_type = var.launch_configuration_instance_type
+  key_name = var.launch_configuration_key_name
+  security_groups = module.security-group-ec2-instance.security_group_id
   user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
