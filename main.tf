@@ -33,13 +33,13 @@ module "security-group-load-balancer" {
 
 resource "aws_elb" "load_balancer" {
   listener {
-    instance_port = 3000
+    instance_port = 80
     instance_protocol = "http"
     lb_port = 80
     lb_protocol = "http"
   }
   listener {
-    instance_port = 3000
+    instance_port = 80
     instance_protocol = "http"
     lb_port = 443
     lb_protocol = "https"
