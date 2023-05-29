@@ -112,3 +112,12 @@ resource "aws_launch_configuration" "launch_configuration" {
   security_groups = [module.security-group-ec2-instance.security_group_id]
   user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
+
+resource "aws_autoscaling_group" "autoscaling_group" {
+  desired_capacity = var.autoscaling_group_desired_capacity
+  health_check_type = var.autoscaling_group_health_check_type
+  launch_configuration = aws_launch_configuration.launch_configuration.name
+  max_size = var.autoscaling_group_max_size
+  min_size = var.autoscaling_group_min_size
+  vpc_zone_identifier = module.subnet-private.subnet_ids
+}

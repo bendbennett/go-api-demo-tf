@@ -1,3 +1,11 @@
+variable "autoscaling_group_desired_capacity" {}
+
+variable "autoscaling_group_health_check_type" {}
+
+variable "autoscaling_group_max_size" {}
+
+variable "autoscaling_group_min_size" {}
+
 variable "availability_zones" {}
 
 variable "cloudwatch_log_group_name" {}
