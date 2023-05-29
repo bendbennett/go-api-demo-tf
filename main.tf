@@ -119,5 +119,5 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   launch_configuration = aws_launch_configuration.launch_configuration.name
   max_size = var.autoscaling_group_max_size
   min_size = var.autoscaling_group_min_size
-  vpc_zone_identifier = module.subnet-private.subnet_ids
+  vpc_zone_identifier = module.subnet-public.subnet_ids
 }
