@@ -85,3 +85,9 @@ resource "aws_iam_role" "iam_role" {
 resource "aws_iam_instance_profile" "iam_instance_profile" {
   role = aws_iam_role.iam_role.name
 }
+
+resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
+  name = var.cloudwatch_log_group_name
+  retention_in_days = var.cloudwatch_log_group_retention_in_days
+}
+

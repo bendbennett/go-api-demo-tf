@@ -1,5 +1,9 @@
 variable "availability_zones" {}
 
+variable "cloudwatch_log_group_name" {}
+
+variable "cloudwatch_log_group_retention_in_days" {}
+
 variable "launch_configuration_policy_actions_resources" {}
 
 variable "launch_configuration_role_policy_identifiers" {}
