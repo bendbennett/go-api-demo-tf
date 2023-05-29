@@ -94,3 +94,11 @@ resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.ecs_cluster_name
 }
+
+data "template_file" "launch_configuration_web_user_data" {
+  template = launch_configuration_web_user_data_template
+
+  vars = {
+    cluster_id = aws_ecs_cluster.ecs_cluster.id
+  }
+}
