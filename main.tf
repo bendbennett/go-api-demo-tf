@@ -85,3 +85,39 @@ resource "aws_iam_role" "iam_role" {
 resource "aws_iam_instance_profile" "iam_instance_profile" {
   role = aws_iam_role.iam_role.name
 }
+
+resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
+  name = var.cloudwatch_log_group_name
+  retention_in_days = var.cloudwatch_log_group_retention_in_days
+}
+
+resource "aws_ecs_cluster" "ecs_cluster" {
+  name = var.ecs_cluster_name
+}
+
+data "template_file" "launch_configuration_web_user_data" {
+  template = file("templates/web_user_data.sh")
+
+  vars = {
+    cluster_id = aws_ecs_cluster.ecs_cluster.id
+  }
+}
+
+resource "aws_launch_configuration" "launch_configuration" {
+  associate_public_ip_address = var.launch_configuration_associate_public_ip_address
+  iam_instance_profile = aws_iam_instance_profile.iam_instance_profile.id
+  image_id = var.launch_configuration_image_id
+  instance_type = var.launch_configuration_instance_type
+  key_name = var.launch_configuration_key_name
+  security_groups = [module.security-group-ec2-instance.security_group_id]
+  user_data = data.template_file.launch_configuration_web_user_data.rendered
+}
+
+resource "aws_autoscaling_group" "autoscaling_group" {
+  desired_capacity = var.autoscaling_group_desired_capacity
+  health_check_type = var.autoscaling_group_health_check_type
+  launch_configuration = aws_launch_configuration.launch_configuration.name
+  max_size = var.autoscaling_group_max_size
+  min_size = var.autoscaling_group_min_size
+  vpc_zone_identifier = module.subnet-private.subnet_ids
+}
