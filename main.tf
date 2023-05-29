@@ -47,7 +47,7 @@ resource "aws_elb" "load_balancer" {
   }
   health_check {
     healthy_threshold   = 2
-    unhealthy_threshold = 2
+    unhealthy_threshold = 10
     timeout             = 3
     target              = "HTTP:80/"
     interval            = 30
