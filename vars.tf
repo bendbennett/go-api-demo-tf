@@ -6,6 +6,10 @@ variable "cloudwatch_log_group_retention_in_days" {}
 
 variable "ecs_cluster_name" {}
 
+variable "launch_configuration_image_id" {}
+
+variable "launch_configuration_instance_type" {}
+
 variable "launch_configuration_policy_actions_resources" {}
 
 variable "launch_configuration_role_policy_identifiers" {}
