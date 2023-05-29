@@ -106,4 +106,5 @@ data "template_file" "launch_configuration_web_user_data" {
 resource "aws_launch_configuration" "launch_configuration" {
   image_id = var.launch_configuration_image_id
   instance_type = var.launch_configuration_instance_type
+  user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
