@@ -109,6 +109,6 @@ resource "aws_launch_configuration" "launch_configuration" {
   image_id = var.launch_configuration_image_id
   instance_type = var.launch_configuration_instance_type
   key_name = var.launch_configuration_key_name
-  security_groups = module.security-group-ec2-instance.security_group_id
+  security_groups = [module.security-group-ec2-instance.security_group_id]
   user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
