@@ -95,6 +95,14 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.ecs_cluster_name
 }
 
+data "template_file" "launch_configuration_web_user_data" {
+  template = file("templates/web_user_data.sh")
+
+  vars = {
+    cluster_id = aws_ecs_cluster.ecs_cluster.id
+  }
+}
+
 resource "aws_launch_configuration" "launch_configuration" {
   image_id = var.launch_configuration_image_id
   instance_type = var.launch_configuration_instance_type

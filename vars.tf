@@ -14,8 +14,6 @@ variable "launch_configuration_policy_actions_resources" {}
 
 variable "launch_configuration_role_policy_identifiers" {}
 
-variable "launch_configuration_web_user_data_template" {}
-
 variable "load_balancer_cross_zone_load_balancing" {}
 
 variable "load_balancer_name" {}
