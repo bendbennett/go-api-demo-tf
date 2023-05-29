@@ -96,7 +96,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 }
 
 data "template_file" "launch_configuration_web_user_data" {
-  template = var.launch_configuration_web_user_data_template
+  template = file(var.launch_configuration_web_user_data_template)
 
   vars = {
     cluster_id = aws_ecs_cluster.ecs_cluster.id
