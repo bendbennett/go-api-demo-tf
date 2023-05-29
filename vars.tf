@@ -14,6 +14,22 @@ variable "cloudwatch_log_group_retention_in_days" {}
 
 variable "ecs_cluster_name" {}
 
+variable "ecs_policy_actions_resources" {}
+
+variable "ecs_role_policy_identifiers" {}
+
+variable "ecs_service_container_name" {}
+
+variable "ecs_service_container_port" {}
+
+variable "ecs_service_deployment_minimum_healthy_percent" {}
+
+variable "ecs_service_desired_count" {}
+
+variable "ecs_service_name" {}
+
+variable "ecs_task_definition_family" {}
+
 variable "launch_configuration_associate_public_ip_address" {}
 
 variable "launch_configuration_image_id" {}

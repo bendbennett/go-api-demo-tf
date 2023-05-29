@@ -121,3 +121,49 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   min_size = var.autoscaling_group_min_size
   vpc_zone_identifier = module.subnet-public.subnet_ids
 }
+
+data "template_file" "task_definition_web_container_definitions" {
+  template = file("templates/web_task_definition_container_definitions.json")
+}
+
+resource "aws_ecs_task_definition" "ecs_task_definition" {
+  container_definitions = data.template_file.task_definition_web_container_definitions.rendered
+  family = var.ecs_task_definition_family
+}
+
+data "aws_iam_policy_document" "ecs_iam_policy_document_role_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sts:AssumeRole",
+    ]
+    principals {
+      type = "Service"
+      identifiers = var.ecs_role_policy_identifiers
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_iam_role_policy" {
+  policy = var.ecs_policy_actions_resources
+  role = aws_iam_role.ecs_iam_role.id
+}
+
+resource "aws_iam_role" "ecs_iam_role" {
+  assume_role_policy = data.aws_iam_policy_document.ecs_iam_policy_document_role_policy.json
+}
+
+resource "aws_ecs_service" "ecs_service" {
+  cluster = aws_ecs_cluster.ecs_cluster.id
+  deployment_minimum_healthy_percent = var.ecs_service_deployment_minimum_healthy_percent
+  desired_count = var.ecs_service_desired_count
+  iam_role = aws_iam_role.ecs_iam_role.id
+  name = var.ecs_service_name
+  task_definition = aws_ecs_task_definition.ecs_task_definition.arn
+
+  load_balancer {
+    elb_name       = aws_elb.load_balancer.name
+    container_name = var.ecs_service_container_name
+    container_port = var.ecs_service_container_port
+  }
+}

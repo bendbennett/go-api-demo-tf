@@ -1,0 +1,22 @@
+[
+  {
+    "name": "go",
+    "cpu": 128,
+    "essential": true,
+    "image": "bendbennett/go-api-demo:v0.1.0",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "eu-west-2",
+        "awslogs-group": "go-api-demo"
+      }
+    },
+    "memory": 128,
+    "portMappings": [
+      {
+        "containerPort": 3000,
+        "hostPort": 80
+      }
+    ]
+  }
+]
