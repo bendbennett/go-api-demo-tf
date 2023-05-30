@@ -31,32 +31,67 @@ module "security-group-load-balancer" {
   vpc_id = module.vpc.vpc_id
 }
 
-resource "aws_elb" "load_balancer" {
-  listener {
-    instance_port = 80
-    instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
-  }
-  listener {
-    instance_port = 80
-    instance_protocol = "http"
-    lb_port = 443
-    lb_protocol = "https"
-    ssl_certificate_id = var.ssl_certificate_id
-  }
+resource "aws_lb_target_group" "target_group" {
+  name = "load_balancer_target_group"
+  port = 80
+  protocol = "HTTP"
+  vpc_id = module.vpc.vpc_id
+
   health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 10
-    timeout             = 3
-    target              = "HTTP:80/"
-    interval            = 30
+    healthy_threshold = 2
+    interval = 30
+    matcher = "200"
+    path = "/"
+    port = 80
+    protocol = "HTTP"
+    timeout = 3
   }
-  cross_zone_load_balancing = var.load_balancer_cross_zone_load_balancing
+}
+
+resource "aws_lb" "load_balancer" {
   name = var.load_balancer_name
+  load_balancer_type = "application"
   security_groups = [module.security-group-load-balancer.security_group_id]
   subnets = module.subnet-public.subnet_ids
 }
+
+resource "aws_lb_listener" "load_balancer_listener" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port = 80
+  protocol = "HTTP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.target_group.arn
+  }
+}
+
+#resource "aws_elb" "load_balancer" {
+#  listener {
+#    instance_port = 80
+#    instance_protocol = "http"
+#    lb_port = 80
+#    lb_protocol = "http"
+#  }
+#  listener {
+#    instance_port = 80
+#    instance_protocol = "http"
+#    lb_port = 443
+#    lb_protocol = "https"
+#    ssl_certificate_id = var.ssl_certificate_id
+#  }
+#  health_check {
+#    healthy_threshold   = 2
+#    unhealthy_threshold = 10
+#    timeout             = 3
+#    target              = "HTTP:80/"
+#    interval            = 30
+#  }
+#  cross_zone_load_balancing = var.load_balancer_cross_zone_load_balancing
+#  name = var.load_balancer_name
+#  security_groups = [module.security-group-load-balancer.security_group_id]
+#  subnets = module.subnet-public.subnet_ids
+#}
 
 module "security-group-ec2-instance" {
   source = "git::https://github.com/bendbennett/aws-security-group"
@@ -169,8 +204,9 @@ resource "aws_ecs_service" "ecs_service" {
   task_definition = aws_ecs_task_definition.ecs_task_definition.arn
 
   load_balancer {
-    elb_name       = aws_elb.load_balancer.name
+#    elb_name       = aws_elb.load_balancer.name
     container_name = var.ecs_service_container_name
     container_port = var.ecs_service_container_port
+    target_group_arn = aws_lb_target_group.target_group.arn
   }
 }
