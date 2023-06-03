@@ -16,6 +16,10 @@
       {
         "containerPort": 3000,
         "hostPort": 80
+      },
+      {
+        "containerPort": 1234,
+        "hostPort": 50051
       }
     ]
   }
