@@ -52,6 +52,15 @@ resource "aws_lb_target_group" "target_group_grpc" {
   protocol = "HTTP"
   protocol_version = "GRPC"
   vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    healthy_threshold = 2
+    interval          = 30
+    matcher           = "0-99"
+    port              = 50051
+    protocol          = "HTTP"
+    timeout           = 3
+  }
 }
 
 resource "aws_lb" "load_balancer" {
