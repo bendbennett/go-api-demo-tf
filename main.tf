@@ -213,6 +213,12 @@ resource "aws_ecs_service" "ecs_service" {
     container_port   = var.ecs_service_container_port
     target_group_arn = aws_lb_target_group.target_group.arn
   }
+
+  load_balancer {
+    container_name   = var.ecs_service_container_name
+    container_port   = var.ecs_service_container_grpc_port
+    target_group_arn = aws_lb_target_group.target_group_grpc.arn
+  }
 }
 
 resource "aws_route53_record" "route53_record" {

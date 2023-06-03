@@ -22,6 +22,8 @@ variable "ecs_role_policy_identifiers" {}
 
 variable "ecs_service_container_name" {}
 
+variable "ecs_service_container_grpc_port" {}
+
 variable "ecs_service_container_port" {}
 
 variable "ecs_service_deployment_minimum_healthy_percent" {}
