@@ -213,7 +213,7 @@ resource "aws_ecs_service" "ecs_service" {
   cluster                            = aws_ecs_cluster.ecs_cluster.id
   deployment_minimum_healthy_percent = var.ecs_service_deployment_minimum_healthy_percent
   desired_count                      = var.ecs_service_desired_count
-  iam_role                           = aws_iam_role.ecs_iam_role.id
+#  iam_role                           = aws_iam_role.ecs_iam_role.id
   name                               = var.ecs_service_name
   task_definition                    = aws_ecs_task_definition.ecs_task_definition.arn
 
