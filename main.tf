@@ -47,6 +47,13 @@ resource "aws_lb_target_group" "target_group" {
   }
 }
 
+resource "aws_lb_target_group" "target_group_grpc" {
+  port     = 50051
+  protocol = "HTTP"
+  protocol_version = "GRPC"
+  vpc_id   = module.vpc.vpc_id
+}
+
 resource "aws_lb" "load_balancer" {
   name               = var.load_balancer_name
   load_balancer_type = "application"
@@ -75,6 +82,19 @@ resource "aws_lb_listener" "load_balancer_listener_https" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.target_group.arn
+  }
+}
+
+resource "aws_lb_listener" "load_balancer_listener_grpc" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port              = 50051
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.target_group_grpc.arn
   }
 }
 
