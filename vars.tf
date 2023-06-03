@@ -8,6 +8,8 @@ variable "autoscaling_group_min_size" {}
 
 variable "availability_zones" {}
 
+variable "certificate_arn" {}
+
 variable "cloudwatch_log_group_name" {}
 
 variable "cloudwatch_log_group_retention_in_days" {}
