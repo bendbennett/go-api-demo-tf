@@ -107,6 +107,17 @@ resource "aws_lb_listener" "load_balancer_listener_grpc" {
   }
 }
 
+resource "aws_lb_listener" "load_balancer_listener_grpc_http" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port              = 50052
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.target_group_grpc.arn
+  }
+}
+
 module "security-group-ec2-instance" {
   source = "git::https://github.com/bendbennett/aws-security-group"
 
