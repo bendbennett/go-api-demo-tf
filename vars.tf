@@ -50,6 +50,10 @@ variable "load_balancer_name" {}
 
 variable "region" {}
 
+variable "route53_record_name" {}
+
+variable "route53_record_zone_id" {}
+
 variable "security_group_rules_cidr_blocks_ec2_instance_web" {}
 
 variable "security_group_rules_cidr_blocks_load_balancer_web" {}

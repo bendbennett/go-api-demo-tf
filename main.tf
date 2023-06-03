@@ -194,3 +194,11 @@ resource "aws_ecs_service" "ecs_service" {
     target_group_arn = aws_lb_target_group.target_group.arn
   }
 }
+
+resource "aws_route53_record" "route53_record" {
+  name = var.route53_record_name
+  records = [aws_lb.load_balancer.dns_name]
+  ttl = "60"
+  type = "CNAME"
+  zone_id = var.route53_record_zone_id
+}
