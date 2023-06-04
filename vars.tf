@@ -66,6 +66,9 @@ variable "ssl_certificate_id" {}
 
 variable "subnet_cidr_blocks_private" {}
 
-variable "subnet_cidr_blocks_public" {}
+variable "subnet_public_cidr_blocks" {}
 
-variable "vpc_cidr_block" {}
+variable "vpc_cidr_block" {
+  type = string
+  default = "10.0.0.0/16"
+}

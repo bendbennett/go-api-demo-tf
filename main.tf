@@ -1,40 +1,79 @@
-module "vpc" {
-  source = "git::https://github.com/bendbennett/aws-vpc"
-
+### VPC ###
+resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support = true
 }
 
-module "subnet-public" {
-  source = "git::https://github.com/bendbennett/aws-subnet"
-
-  availability_zones  = var.availability_zones
-  cidr_blocks         = var.subnet_cidr_blocks_public
-  internet_gateway_id = module.vpc.internet_gateway_id
-  public_subnet       = true
-  vpc_id              = module.vpc.vpc_id
+resource "aws_internet_gateway" "internet_gateway" {
+  vpc_id = aws_vpc.vpc.id
 }
 
+### PUBLIC SUBNET ###
+resource "aws_subnet" "subnet_public" {
+  count = length(var.subnet_public_cidr_blocks)
+
+  availability_zone = element(var.availability_zones, count.index)
+  cidr_block = element(var.subnet_public_cidr_blocks, count.index)
+  vpc_id = aws_vpc.vpc.id
+}
+
+### PUBLIC SUBNET - ROUTES ###
+resource "aws_route_table" "route_table_public" {
+  count = length(var.subnet_public_cidr_blocks)
+
+  vpc_id = aws_vpc.vpc.id
+}
+
+resource "aws_route" "route_public" {
+  count = length(var.subnet_public_cidr_blocks)
+
+  route_table_id = element(aws_route_table.route_table_public.*.id, count.index)
+  destination_cidr_block = "10.0.0.0/22"
+  gateway_id = aws_internet_gateway.internet_gateway.id
+}
+
+resource "aws_route_table_association" "route_table_association_public" {
+  count = length(var.subnet_public_cidr_blocks)
+
+  route_table_id = element(aws_route_table.route_table_public.*.id, count.index)
+  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
+}
+
+### PUBLIC SUBNET - NAT GATEWAYS ###
+resource "aws_eip" "eip" {
+  count = length(var.subnet_public_cidr_blocks)
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  count = length(var.subnet_public_cidr_blocks)
+
+  allocation_id = element(aws_eip.eip.*.id, count.index)
+  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
+}
+
+### PRIVATE SUBNET ###
 module "subnet-private" {
   source = "git::https://github.com/bendbennett/aws-subnet"
 
   availability_zones = var.availability_zones
   cidr_blocks        = var.subnet_cidr_blocks_private
-  nat_gateway_ids    = module.subnet-public.nat_gateway_ids
+  nat_gateway_ids    = aws_nat_gateway.nat_gateway.*.id
   public_subnet      = false
-  vpc_id             = module.vpc.vpc_id
+  vpc_id             = aws_vpc.vpc.id
 }
 
 module "security-group-load-balancer" {
   source = "git::https://github.com/bendbennett/aws-security-group"
 
   security_group_rules_cidr_blocks = var.security_group_rules_cidr_blocks_load_balancer_web
-  vpc_id                           = module.vpc.vpc_id
+  vpc_id                           = aws_vpc.vpc.id
 }
 
 resource "aws_lb_target_group" "target_group" {
   port     = 80
   protocol = "HTTP"
-  vpc_id   = module.vpc.vpc_id
+  vpc_id   = aws_vpc.vpc.id
 
   health_check {
     healthy_threshold = 2
@@ -51,7 +90,7 @@ resource "aws_lb_target_group" "target_group_grpc" {
   port     = 50051
   protocol = "HTTP"
   protocol_version = "GRPC"
-  vpc_id   = module.vpc.vpc_id
+  vpc_id   = aws_vpc.vpc.id
 
   health_check {
     healthy_threshold = 2
@@ -67,7 +106,7 @@ resource "aws_lb" "load_balancer" {
   name               = var.load_balancer_name
   load_balancer_type = "application"
   security_groups    = [module.security-group-load-balancer.security_group_id]
-  subnets            = module.subnet-public.subnet_ids
+  subnets            = aws_subnet.subnet_public.*.id
 }
 
 resource "aws_lb_listener" "load_balancer_listener" {
@@ -113,7 +152,7 @@ module "security-group-ec2-instance" {
   security_group_rules_source_security_group_id = var.security_group_rules_source_security_group_id_ec2_instance_web
   source_security_group_ids                     = [module.security-group-load-balancer.security_group_id]
   security_group_rules_cidr_blocks              = var.security_group_rules_cidr_blocks_ec2_instance_web
-  vpc_id                                        = module.vpc.vpc_id
+  vpc_id                                        = aws_vpc.vpc.id
 }
 
 data "aws_iam_policy_document" "iam_policy_document_role_policy" {
@@ -175,7 +214,7 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   launch_configuration = aws_launch_configuration.launch_configuration.name
   max_size             = var.autoscaling_group_max_size
   min_size             = var.autoscaling_group_min_size
-  vpc_zone_identifier  = module.subnet-public.subnet_ids
+  vpc_zone_identifier  = aws_subnet.subnet_public.*.id
 }
 
 data "template_file" "task_definition_web_container_definitions" {
