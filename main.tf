@@ -280,8 +280,8 @@ data "template_file" "launch_configuration_web_user_data" {
   }
 }
 
+//TODO: Replace with launch templates
 resource "aws_launch_configuration" "launch_configuration" {
-  associate_public_ip_address = var.launch_configuration_associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.iam_instance_profile.id
   image_id                    = var.launch_configuration_image_id
   instance_type               = var.launch_configuration_instance_type
