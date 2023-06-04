@@ -29,7 +29,7 @@ resource "aws_route" "route_public" {
   count = length(var.subnet_public_cidr_blocks)
 
   route_table_id = element(aws_route_table.route_table_public.*.id, count.index)
-  destination_cidr_block = "10.0.0.0/8"
+  destination_cidr_block = "0.0.0.0/0"
   gateway_id = aws_internet_gateway.internet_gateway.id
 }
 
