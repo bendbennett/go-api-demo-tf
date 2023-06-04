@@ -1,8 +1,8 @@
 ### VPC ###
 resource "aws_vpc" "vpc" {
-  cidr_block = var.vpc_cidr_block
+  cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
 }
 
 resource "aws_internet_gateway" "internet_gateway" {
@@ -14,8 +14,8 @@ resource "aws_subnet" "subnet_public" {
   count = length(var.subnet_public_cidr_blocks)
 
   availability_zone = element(var.availability_zones, count.index)
-  cidr_block = element(var.subnet_public_cidr_blocks, count.index)
-  vpc_id = aws_vpc.vpc.id
+  cidr_block        = element(var.subnet_public_cidr_blocks, count.index)
+  vpc_id            = aws_vpc.vpc.id
 }
 
 ### PUBLIC SUBNET - ROUTES ###
@@ -28,16 +28,16 @@ resource "aws_route_table" "route_table_public" {
 resource "aws_route" "route_public" {
   count = length(var.subnet_public_cidr_blocks)
 
-  route_table_id = element(aws_route_table.route_table_public.*.id, count.index)
+  route_table_id         = element(aws_route_table.route_table_public.*.id, count.index)
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.internet_gateway.id
+  gateway_id             = aws_internet_gateway.internet_gateway.id
 }
 
 resource "aws_route_table_association" "route_table_association_public" {
   count = length(var.subnet_public_cidr_blocks)
 
   route_table_id = element(aws_route_table.route_table_public.*.id, count.index)
-  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
+  subnet_id      = element(aws_subnet.subnet_public.*.id, count.index)
 }
 
 ### PUBLIC SUBNET - NAT GATEWAYS ###
@@ -49,7 +49,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   count = length(var.subnet_public_cidr_blocks)
 
   allocation_id = element(aws_eip.eip.*.id, count.index)
-  subnet_id = element(aws_subnet.subnet_public.*.id, count.index)
+  subnet_id     = element(aws_subnet.subnet_public.*.id, count.index)
 }
 
 ### PRIVATE SUBNET ###
@@ -57,8 +57,8 @@ resource "aws_subnet" "subnet_private" {
   count = length(var.subnet_private_cidr_blocks)
 
   availability_zone = element(var.availability_zones, count.index)
-  cidr_block = element(var.subnet_private_cidr_blocks, count.index)
-  vpc_id = aws_vpc.vpc.id
+  cidr_block        = element(var.subnet_private_cidr_blocks, count.index)
+  vpc_id            = aws_vpc.vpc.id
 }
 
 ### PRIVATE SUBNET - ROUTES ###
@@ -71,16 +71,46 @@ resource "aws_route_table" "route_table_private" {
 resource "aws_route" "route_private" {
   count = length(var.subnet_private_cidr_blocks)
 
-  route_table_id = element(aws_route_table.route_table_private.*.id, count.index)
+  route_table_id         = element(aws_route_table.route_table_private.*.id, count.index)
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = element(aws_nat_gateway.nat_gateway.*.id, count.index)
+  nat_gateway_id         = element(aws_nat_gateway.nat_gateway.*.id, count.index)
 }
 
 resource "aws_route_table_association" "route_table_association" {
   count = length(var.subnet_private_cidr_blocks)
 
   route_table_id = element(aws_route_table.route_table_private.*.id, count.index)
-  subnet_id = element(aws_subnet.subnet_private.*.id, count.index)
+  subnet_id      = element(aws_subnet.subnet_private.*.id, count.index)
+}
+
+### BASTION ###
+resource "aws_security_group" "bastion-allow-ssh" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "bastion-allow-ssh"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "bastion-allow-ssh"
+  }
+}
+
+resource "aws_instance" "bastion" {
+  ami                    = "ami-00ea190317acc1223"
+  instance_type          = "t2.micro"
+  key_name               = var.launch_configuration_key_name
+  subnet_id              = aws_subnet.subnet_public.id
+  vpc_security_group_ids = [aws_security_group.bastion-allow-ssh.id]
 }
 
 ### LOAD BALANCER ###
@@ -91,12 +121,12 @@ resource "aws_security_group" "load_balancer_security_group" {
 resource "aws_security_group_rule" "load_balancer_security_group_rule_cidr_blocks" {
   count = length(var.load_balancer_security_group_rules_cidr_blocks)
 
-  cidr_blocks = [lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "cidr_blocks")]
-  from_port = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "from_port")
-  protocol = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "protocol")
+  cidr_blocks       = [lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "cidr_blocks")]
+  from_port         = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "from_port")
+  protocol          = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "protocol")
   security_group_id = aws_security_group.load_balancer_security_group.id
-  to_port = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "to_port")
-  type = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "type")
+  to_port           = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "to_port")
+  type              = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "type")
 }
 
 resource "aws_lb_target_group" "target_group" {
@@ -116,10 +146,10 @@ resource "aws_lb_target_group" "target_group" {
 }
 
 resource "aws_lb_target_group" "target_group_grpc" {
-  port     = 50051
-  protocol = "HTTP"
+  port             = 50051
+  protocol         = "HTTP"
   protocol_version = "GRPC"
-  vpc_id   = aws_vpc.vpc.id
+  vpc_id           = aws_vpc.vpc.id
 
   health_check {
     healthy_threshold = 2
@@ -184,6 +214,28 @@ module "security-group-ec2-instance" {
   vpc_id                                        = aws_vpc.vpc.id
 }
 
+resource "aws_security_group" "private-ssh" {
+  vpc_id      = aws_vpc.vpc.id
+  name        = "private-ssh"
+  description = "security group for private that allows ssh and all egress traffic"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion-allow-ssh.id]
+  }
+  tags = {
+    Name = "private-ssh"
+  }
+}
+
 data "aws_iam_policy_document" "iam_policy_document_role_policy" {
   statement {
     effect  = "Allow"
@@ -233,8 +285,11 @@ resource "aws_launch_configuration" "launch_configuration" {
   image_id                    = var.launch_configuration_image_id
   instance_type               = var.launch_configuration_instance_type
   key_name                    = var.launch_configuration_key_name
-  security_groups             = [module.security-group-ec2-instance.security_group_id]
-  user_data                   = data.template_file.launch_configuration_web_user_data.rendered
+  security_groups             = [
+    module.security-group-ec2-instance.security_group_id,
+    aws_security_group.bastion-allow-ssh.id
+  ]
+  user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {
@@ -281,7 +336,7 @@ resource "aws_ecs_service" "ecs_service" {
   cluster                            = aws_ecs_cluster.ecs_cluster.id
   deployment_minimum_healthy_percent = var.ecs_service_deployment_minimum_healthy_percent
   desired_count                      = var.ecs_service_desired_count
-#  iam_role                           = aws_iam_role.ecs_iam_role.id
+  #  iam_role                           = aws_iam_role.ecs_iam_role.id
   name                               = var.ecs_service_name
   task_definition                    = aws_ecs_task_definition.ecs_task_definition.arn
 
@@ -299,9 +354,9 @@ resource "aws_ecs_service" "ecs_service" {
 }
 
 resource "aws_route53_record" "route53_record" {
-  name = var.route53_record_name
+  name    = var.route53_record_name
   records = [aws_lb.load_balancer.dns_name]
-  ttl = "60"
-  type = "CNAME"
+  ttl     = "60"
+  type    = "CNAME"
   zone_id = var.route53_record_zone_id
 }
