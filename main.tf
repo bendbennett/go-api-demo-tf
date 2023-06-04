@@ -109,7 +109,7 @@ resource "aws_instance" "bastion" {
   ami                    = "ami-00ea190317acc1223"
   instance_type          = "t2.micro"
   key_name               = var.launch_configuration_key_name
-  subnet_id              = aws_subnet.subnet_public.id
+  subnet_id              = aws_subnet.subnet_public[0].id
   vpc_security_group_ids = [aws_security_group.bastion-allow-ssh.id]
 }
 
