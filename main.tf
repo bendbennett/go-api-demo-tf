@@ -293,12 +293,13 @@ resource "aws_launch_configuration" "launch_configuration" {
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {
-  desired_capacity     = var.autoscaling_group_desired_capacity
-  health_check_type    = var.autoscaling_group_health_check_type
-  launch_configuration = aws_launch_configuration.launch_configuration.name
-  max_size             = var.autoscaling_group_max_size
-  min_size             = var.autoscaling_group_min_size
-  vpc_zone_identifier  = aws_subnet.subnet_private.*.id
+  desired_capacity          = var.autoscaling_group_desired_capacity
+  health_check_type         = var.autoscaling_group_health_check_type
+  health_check_grace_period = 60
+  launch_configuration      = aws_launch_configuration.launch_configuration.name
+  max_size                  = var.autoscaling_group_max_size
+  min_size                  = var.autoscaling_group_min_size
+  vpc_zone_identifier       = aws_subnet.subnet_private.*.id
 }
 
 data "template_file" "task_definition_web_container_definitions" {
