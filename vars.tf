@@ -7,7 +7,7 @@ variable "autoscaling_group_max_size" {}
 variable "autoscaling_group_min_size" {}
 
 variable "availability_zones" {
-  type = list(string)
+  type    = list(string)
   default = [
     "eu-west-2a",
     "eu-west-2b",
@@ -57,6 +57,50 @@ variable "load_balancer_cross_zone_load_balancing" {}
 
 variable "load_balancer_name" {}
 
+variable "load_balancer_security_group_rules_cidr_blocks" {
+  type = list(
+    object(
+      {
+        cidr_blocks = string
+        from_port   = number
+        protocol    = string
+        to_port     = number
+        type        = string
+      }
+    )
+  )
+  default = [
+    {
+      cidr_blocks = "0.0.0.0/0",
+      from_port   = 80,
+      protocol    = "tcp"
+      to_port     = 80,
+      type        = "ingress"
+    },
+    {
+      cidr_blocks = "0.0.0.0/0",
+      from_port   = 443,
+      protocol    = "tcp"
+      to_port     = 443,
+      type        = "ingress"
+    },
+    {
+      cidr_blocks = "0.0.0.0/0",
+      from_port   = 50051,
+      protocol    = "tcp"
+      to_port     = 50051,
+      type        = "ingress"
+    },
+    {
+      cidr_blocks = "0.0.0.0/0",
+      from_port   = 0,
+      protocol    = "-1"
+      to_port     = 0,
+      type        = "egress"
+    }
+  ]
+}
+
 variable "region" {}
 
 variable "route53_record_name" {}
@@ -64,8 +108,6 @@ variable "route53_record_name" {}
 variable "route53_record_zone_id" {}
 
 variable "security_group_rules_cidr_blocks_ec2_instance_web" {}
-
-variable "security_group_rules_cidr_blocks_load_balancer_web" {}
 
 variable "security_group_rules_source_security_group_id_ec2_instance_web" {}
 
@@ -81,7 +123,7 @@ variable "subnet_private_cidr_blocks" {
 }
 
 variable "subnet_public_cidr_blocks" {
-  type = list(string)
+  type    = list(string)
   default = [
     "10.0.0.0/24",
     "10.0.1.0/24",

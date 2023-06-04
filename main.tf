@@ -84,11 +84,19 @@ resource "aws_route_table_association" "route_table_association" {
 }
 
 ### LOAD BALANCER ###
-module "security-group-load-balancer" {
-  source = "git::https://github.com/bendbennett/aws-security-group"
+resource "aws_security_group" "load_balancer_security_group" {
+  vpc_id = aws_vpc.vpc.id
+}
 
-  security_group_rules_cidr_blocks = var.security_group_rules_cidr_blocks_load_balancer_web
-  vpc_id                           = aws_vpc.vpc.id
+resource "aws_security_group_rule" "load_balancer_security_group_rule_cidr_blocks" {
+  count = length(var.load_balancer_security_group_rules_cidr_blocks)
+
+  cidr_blocks = [lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "cidr_blocks")]
+  from_port = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "from_port")
+  protocol = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "protocol")
+  security_group_id = aws_security_group.load_balancer_security_group.id
+  to_port = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "to_port")
+  type = lookup(var.load_balancer_security_group_rules_cidr_blocks[count.index], "type")
 }
 
 resource "aws_lb_target_group" "target_group" {
@@ -126,7 +134,7 @@ resource "aws_lb_target_group" "target_group_grpc" {
 resource "aws_lb" "load_balancer" {
   name               = var.load_balancer_name
   load_balancer_type = "application"
-  security_groups    = [module.security-group-load-balancer.security_group_id]
+  security_groups    = [aws_security_group.load_balancer_security_group.id]
   subnets            = aws_subnet.subnet_public.*.id
 }
 
@@ -171,7 +179,7 @@ module "security-group-ec2-instance" {
   source = "git::https://github.com/bendbennett/aws-security-group"
 
   security_group_rules_source_security_group_id = var.security_group_rules_source_security_group_id_ec2_instance_web
-  source_security_group_ids                     = [module.security-group-load-balancer.security_group_id]
+  source_security_group_ids                     = [aws_security_group.load_balancer_security_group.id]
   security_group_rules_cidr_blocks              = var.security_group_rules_cidr_blocks_ec2_instance_web
   vpc_id                                        = aws_vpc.vpc.id
 }
