@@ -53,16 +53,37 @@ resource "aws_nat_gateway" "nat_gateway" {
 }
 
 ### PRIVATE SUBNET ###
-module "subnet-private" {
-  source = "git::https://github.com/bendbennett/aws-subnet"
+resource "aws_subnet" "subnet_private" {
+  count = length(var.subnet_private_cidr_blocks)
 
-  availability_zones = var.availability_zones
-  cidr_blocks        = var.subnet_cidr_blocks_private
-  nat_gateway_ids    = aws_nat_gateway.nat_gateway.*.id
-  public_subnet      = false
-  vpc_id             = aws_vpc.vpc.id
+  availability_zone = element(var.availability_zones, count.index)
+  cidr_block = element(var.subnet_private_cidr_blocks, count.index)
+  vpc_id = aws_vpc.vpc.id
 }
 
+### PRIVATE SUBNET - ROUTES ###
+resource "aws_route_table" "route_table_private" {
+  count = length(var.subnet_private_cidr_blocks)
+
+  vpc_id = aws_vpc.vpc.id
+}
+
+resource "aws_route" "route_private" {
+  count = length(var.subnet_private_cidr_blocks)
+
+  route_table_id = element(aws_route_table.route_table_private.*.id, count.index)
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = element(aws_nat_gateway.nat_gateway.*.id, count.index)
+}
+
+resource "aws_route_table_association" "route_table_association" {
+  count = length(var.subnet_private_cidr_blocks)
+
+  route_table_id = element(aws_route_table.route_table_private.*.id, count.index)
+  subnet_id = element(aws_subnet.subnet_private.*.id, count.index)
+}
+
+### LOAD BALANCER ###
 module "security-group-load-balancer" {
   source = "git::https://github.com/bendbennett/aws-security-group"
 

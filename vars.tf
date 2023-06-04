@@ -6,7 +6,14 @@ variable "autoscaling_group_max_size" {}
 
 variable "autoscaling_group_min_size" {}
 
-variable "availability_zones" {}
+variable "availability_zones" {
+  type = list(string)
+  default = [
+    "eu-west-2a",
+    "eu-west-2b",
+    "eu-west-2c"
+  ]
+}
 
 variable "certificate_arn" {}
 
@@ -64,11 +71,25 @@ variable "security_group_rules_source_security_group_id_ec2_instance_web" {}
 
 variable "ssl_certificate_id" {}
 
-variable "subnet_cidr_blocks_private" {}
+variable "subnet_private_cidr_blocks" {
+  type    = list(string)
+  default = [
+    "10.0.128.0/24",
+    "10.0.129.0/24",
+    "10.0.130.0/24"
+  ]
+}
 
-variable "subnet_public_cidr_blocks" {}
+variable "subnet_public_cidr_blocks" {
+  type = list(string)
+  default = [
+    "10.0.0.0/24",
+    "10.0.1.0/24",
+    "10.0.2.0/24"
+  ]
+}
 
 variable "vpc_cidr_block" {
-  type = string
+  type    = string
   default = "10.0.0.0/16"
 }
