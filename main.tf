@@ -83,36 +83,36 @@ resource "aws_route_table_association" "route_table_association" {
   subnet_id      = element(aws_subnet.subnet_private.*.id, count.index)
 }
 
-### BASTION ###
-resource "aws_security_group" "bastion-allow-ssh" {
-  vpc_id = aws_vpc.vpc.id
-  name   = "bastion-allow-ssh"
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name = "bastion-allow-ssh"
-  }
-}
-
-resource "aws_instance" "bastion" {
-  ami                         = "ami-00ea190317acc1223"
-  associate_public_ip_address = true
-  instance_type               = "t2.micro"
-  key_name                    = var.launch_configuration_key_name
-  subnet_id                   = aws_subnet.subnet_public[0].id
-  vpc_security_group_ids      = [aws_security_group.bastion-allow-ssh.id]
-}
+#### BASTION ###
+#resource "aws_security_group" "bastion-allow-ssh" {
+#  vpc_id = aws_vpc.vpc.id
+#  name   = "bastion-allow-ssh"
+#  egress {
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
+#
+#  ingress {
+#    from_port   = 22
+#    to_port     = 22
+#    protocol    = "tcp"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
+#  tags = {
+#    Name = "bastion-allow-ssh"
+#  }
+#}
+#
+#resource "aws_instance" "bastion" {
+#  ami                         = "ami-00ea190317acc1223"
+#  associate_public_ip_address = true
+#  instance_type               = "t2.micro"
+#  key_name                    = var.launch_configuration_key_name
+#  subnet_id                   = aws_subnet.subnet_public[0].id
+#  vpc_security_group_ids      = [aws_security_group.bastion-allow-ssh.id]
+#}
 
 ### LOAD BALANCER ###
 resource "aws_security_group" "load_balancer_security_group" {
@@ -215,52 +215,52 @@ module "security-group-ec2-instance" {
   vpc_id                                        = aws_vpc.vpc.id
 }
 
-resource "aws_security_group" "private-ssh" {
-  vpc_id      = aws_vpc.vpc.id
-  name        = "private-ssh"
-  description = "security group for private that allows ssh and all egress traffic"
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#resource "aws_security_group" "private-ssh" {
+#  vpc_id      = aws_vpc.vpc.id
+#  name        = "private-ssh"
+#  description = "security group for private that allows ssh and all egress traffic"
+#  egress {
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
+#
+#  ingress {
+#    from_port       = 22
+#    to_port         = 22
+#    protocol        = "tcp"
+#    security_groups = [aws_security_group.bastion-allow-ssh.id]
+#  }
+#  tags = {
+#    Name = "private-ssh"
+#  }
+#}
 
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion-allow-ssh.id]
-  }
-  tags = {
-    Name = "private-ssh"
-  }
-}
+#data "aws_iam_policy_document" "iam_policy_document_role_policy" {
+#  statement {
+#    effect  = "Allow"
+#    actions = [
+#      "sts:AssumeRole",
+#    ]
+#    principals {
+#      type        = "Service"
+#      identifiers = var.launch_configuration_role_policy_identifiers
+#    }
+#  }
+#}
 
-data "aws_iam_policy_document" "iam_policy_document_role_policy" {
-  statement {
-    effect  = "Allow"
-    actions = [
-      "sts:AssumeRole",
-    ]
-    principals {
-      type        = "Service"
-      identifiers = var.launch_configuration_role_policy_identifiers
-    }
-  }
-}
+#resource "aws_iam_role_policy" "iam_role_policy" {
+#  policy = var.launch_configuration_policy_actions_resources
+#  role   = aws_iam_role.iam_role.id
+#}
 
-resource "aws_iam_role_policy" "iam_role_policy" {
-  policy = var.launch_configuration_policy_actions_resources
-  role   = aws_iam_role.iam_role.id
-}
-
-resource "aws_iam_role" "iam_role" {
-  assume_role_policy = data.aws_iam_policy_document.iam_policy_document_role_policy.json
-}
+#resource "aws_iam_role" "iam_role" {
+#  assume_role_policy = data.aws_iam_policy_document.iam_policy_document_role_policy.json
+#}
 
 resource "aws_iam_instance_profile" "iam_instance_profile" {
-  role = aws_iam_role.iam_role.name
+  role = aws_iam_role.ec2_role.name
 }
 
 resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
@@ -289,7 +289,7 @@ resource "aws_launch_configuration" "launch_configuration" {
   key_name                    = var.launch_configuration_key_name
   security_groups             = [
     module.security-group-ec2-instance.security_group_id,
-    aws_security_group.bastion-allow-ssh.id
+    #    aws_security_group.bastion-allow-ssh.id
   ]
   user_data = data.template_file.launch_configuration_web_user_data.rendered
 }
@@ -362,4 +362,81 @@ resource "aws_route53_record" "route53_record" {
   ttl     = "60"
   type    = "CNAME"
   zone_id = var.route53_record_zone_id
+}
+
+### SESSION MANAGER ###
+resource "aws_security_group" "session_manager" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "security-group-session-manager"
+
+  ingress {
+    cidr_blocks = var.subnet_private_cidr_blocks
+    from_port   = 443
+    protocol    = "tcp"
+    to_port     = 443
+  }
+
+  tags = {
+    Name = "session-manager"
+  }
+}
+
+resource "aws_vpc_endpoint" "session_manager_ec2_messages" {
+  service_name       = "com.amazonaws.eu-west-2.ec2messages"
+  security_group_ids = [
+    aws_security_group.session_manager.id
+  ]
+  subnet_ids        = aws_subnet.subnet_private.*.id
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.vpc.id
+}
+
+resource "aws_vpc_endpoint" "session_manager_ssm" {
+  service_name       = "com.amazonaws.eu-west-2.ssm"
+  security_group_ids = [
+    aws_security_group.session_manager.id
+  ]
+  subnet_ids        = aws_subnet.subnet_private.*.id
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.vpc.id
+}
+
+resource "aws_vpc_endpoint" "session_manager_ssm_messages" {
+  service_name       = "com.amazonaws.eu-west-2.ssmmessages"
+  security_group_ids = [
+    aws_security_group.session_manager.id
+  ]
+  subnet_ids        = aws_subnet.subnet_private.*.id
+  vpc_endpoint_type = "Interface"
+  vpc_id            = aws_vpc.vpc.id
+}
+
+data "aws_iam_policy_document" "ec2_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = [
+        "ec2.amazonaws.com",
+        "ssm.amazonaws.com"
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "ec2_role" {
+  name               = "ec2_role"
+  assume_role_policy = data.aws_iam_policy_document.ec2_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "test_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy" "iam_role_policy" {
+  policy = var.launch_configuration_policy_actions_resources
+  role   = aws_iam_role.ec2_role.id
 }
