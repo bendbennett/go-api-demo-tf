@@ -266,6 +266,10 @@ resource "aws_launch_configuration" "launch_configuration" {
     aws_security_group.ec2_security_group.id,
   ]
   user_data = data.template_file.launch_configuration_web_user_data.rendered
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {
