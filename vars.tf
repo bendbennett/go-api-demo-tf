@@ -107,9 +107,55 @@ variable "route53_record_name" {}
 
 variable "route53_record_zone_id" {}
 
-variable "security_group_rules_cidr_blocks_ec2_instance_web" {}
+variable "security_group_rules_cidr_blocks_ec2_instance_web" {
+  type = list(
+    object(
+      {
+        cidr_blocks = string
+        from_port   = number
+        protocol    = string
+        to_port     = number
+        type        = string
+      }
+    )
+  )
+  default = [
+    {
+      cidr_blocks = "0.0.0.0/0",
+      from_port   = 0,
+      protocol    = "-1"
+      to_port     = 0,
+      type        = "egress"
+    }
+  ]
+}
 
-variable "security_group_rules_source_security_group_id_ec2_instance_web" {}
+variable "security_group_rules_source_security_group_id_ec2_instance_web" {
+  type = list(
+    object(
+      {
+        from_port = number
+        protocol  = string
+        to_port   = number
+        type      = string
+      }
+    )
+  )
+  default = [
+    {
+      from_port = 80,
+      protocol  = "tcp"
+      to_port   = 80,
+      type      = "ingress"
+    },
+    {
+      from_port = 50051,
+      protocol  = "tcp"
+      to_port   = 50051,
+      type      = "ingress"
+    },
+  ]
+}
 
 variable "ssl_certificate_id" {}
 
