@@ -197,7 +197,7 @@ resource "aws_security_group_rule" "security_group_rule_source_security_group_id
   from_port = lookup(var.security_group_rules_source_security_group_id_ec2_instance_web[count.index], "from_port")
   protocol = lookup(var.security_group_rules_source_security_group_id_ec2_instance_web[count.index], "protocol")
   security_group_id = aws_security_group.ec2_security_group.id
-  source_security_group_id = [aws_security_group.load_balancer_security_group.id]
+  source_security_group_id = aws_security_group.load_balancer_security_group.id
   to_port = lookup(var.security_group_rules_source_security_group_id_ec2_instance_web[count.index], "to_port")
   type = lookup(var.security_group_rules_source_security_group_id_ec2_instance_web[count.index], "type")
 }
