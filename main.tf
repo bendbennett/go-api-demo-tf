@@ -222,7 +222,7 @@ resource "aws_iam_role" "ec2_role" {
   assume_role_policy = data.aws_iam_policy_document.ec2_role.json
 }
 
-resource "aws_iam_role_policy_attachment" "test_attach" {
+resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
@@ -261,7 +261,7 @@ resource "aws_launch_configuration" "launch_configuration" {
   iam_instance_profile        = aws_iam_instance_profile.iam_instance_profile.id
   image_id                    = var.launch_configuration_image_id
   instance_type               = var.launch_configuration_instance_type
-  key_name                    = var.launch_configuration_key_name
+#  key_name                    = var.launch_configuration_key_name
   security_groups             = [
     aws_security_group.ec2_security_group.id,
   ]
@@ -295,7 +295,9 @@ data "aws_iam_policy_document" "ecs_iam_policy_document_role_policy" {
     ]
     principals {
       type        = "Service"
-      identifiers = var.ecs_role_policy_identifiers
+      identifiers = [
+        "ecs.amazonaws.com"
+      ]
     }
   }
 }

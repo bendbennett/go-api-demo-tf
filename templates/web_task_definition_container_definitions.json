@@ -8,7 +8,8 @@
       "logDriver": "awslogs",
       "options": {
         "awslogs-region": "eu-west-2",
-        "awslogs-group": "go-api-demo"
+        "awslogs-group": "go-api-demo",
+        "awslogs-stream-prefix": "go"
       }
     },
     "memory": 128,
