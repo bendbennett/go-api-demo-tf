@@ -44,8 +44,6 @@ variable "ecs_cluster_name" {
   default = "go-api-demo"
 }
 
-variable "ecs_policy_actions_resources" {}
-
 variable "ecs_service_container_grpc_port" {
   type    = number
   default = 1234

@@ -228,7 +228,7 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 resource "aws_iam_role_policy" "iam_role_policy" {
-  policy = var.launch_configuration_policy_actions_resources
+  policy = file("templates/launch_configuration_policy.json")
   role   = aws_iam_role.ec2_role.id
 }
 
@@ -248,7 +248,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 }
 
 data "template_file" "launch_configuration_web_user_data" {
-  template = file("templates/web_user_data.sh")
+  template = file("templates/ecs_docker_user_data.sh")
 
   vars = {
     cluster_id = aws_ecs_cluster.ecs_cluster.id
@@ -283,7 +283,7 @@ resource "aws_autoscaling_group" "autoscaling_group" {
 }
 
 data "template_file" "task_definition_web_container_definitions" {
-  template = file("templates/web_task_definition_container_definitions.json")
+  template = file("templates/go_api_demo_task_definition.json")
 }
 
 resource "aws_ecs_task_definition" "ecs_task_definition" {
@@ -307,7 +307,7 @@ data "aws_iam_policy_document" "ecs_iam_policy_document_role_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_iam_role_policy" {
-  policy = var.ecs_policy_actions_resources
+  policy = file("templates/ecs_policy.json")
   role   = aws_iam_role.ecs_iam_role.id
 }
 
