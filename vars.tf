@@ -94,8 +94,6 @@ variable "launch_configuration_instance_type" {
   default = "t2.micro"
 }
 
-variable "launch_configuration_policy_actions_resources" {}
-
 variable "load_balancer_name" {
   type = string
   default = "go-api-demo"
@@ -145,7 +143,10 @@ variable "load_balancer_security_group_rules_cidr_blocks" {
   ]
 }
 
-variable "region" {}
+variable "region" {
+  type = string
+  default = "eu-west-2"
+}
 
 variable "route53_record_name" {}
 
