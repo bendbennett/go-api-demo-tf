@@ -261,7 +261,7 @@ resource "aws_launch_template" "go_api_demo" {
   }
   image_id = var.launch_template_image_id
   instance_type = var.launch_template_instance_type
-  user_data = filebase64(data.template_file.ecs_docker_user_data.rendered)
+  user_data = base64encode(data.template_file.ecs_docker_user_data.rendered)
   vpc_security_group_ids = [
     aws_security_group.ec2_security_group.id,
   ]
