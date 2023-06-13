@@ -79,17 +79,12 @@ variable "ecs_task_definition_family" {
   default = "go-api-demo"
 }
 
-variable "launch_configuration_associate_public_ip_address" {
-  type    = bool
-  default = false
-}
-
-variable "launch_configuration_image_id" {
+variable "launch_template_image_id" {
   type    = string
   default = "ami-00ea190317acc1223"
 }
 
-variable "launch_configuration_instance_type" {
+variable "launch_template_instance_type" {
   type    = string
   default = "t2.micro"
 }

@@ -228,7 +228,7 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 resource "aws_iam_role_policy" "iam_role_policy" {
-  policy = file("templates/launch_configuration_policy.json")
+  policy = file("templates/launch_template_policy.json")
   role   = aws_iam_role.ec2_role.id
 }
 
@@ -247,7 +247,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.ecs_cluster_name
 }
 
-data "template_file" "launch_configuration_web_user_data" {
+data "template_file" "ecs_docker_user_data" {
   template = file("templates/ecs_docker_user_data.sh")
 
   vars = {
@@ -255,28 +255,26 @@ data "template_file" "launch_configuration_web_user_data" {
   }
 }
 
-//TODO: Replace with launch templates
-resource "aws_launch_configuration" "launch_configuration" {
-  associate_public_ip_address = var.launch_configuration_associate_public_ip_address
-  iam_instance_profile        = aws_iam_instance_profile.iam_instance_profile.id
-  image_id                    = var.launch_configuration_image_id
-  instance_type               = var.launch_configuration_instance_type
-#  key_name                    = var.launch_configuration_key_name
-  security_groups             = [
+resource "aws_launch_template" "go_api_demo" {
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.iam_instance_profile.arn
+  }
+  image_id = var.launch_template_image_id
+  instance_type = var.launch_template_instance_type
+  user_data = data.template_file.ecs_docker_user_data.rendered
+  vpc_security_group_ids = [
     aws_security_group.ec2_security_group.id,
   ]
-  user_data = data.template_file.launch_configuration_web_user_data.rendered
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {
   desired_capacity          = var.autoscaling_group_desired_capacity
   health_check_type         = var.autoscaling_group_health_check_type
   health_check_grace_period = 60
-  launch_configuration      = aws_launch_configuration.launch_configuration.name
+  launch_template {
+    id = aws_launch_template.go_api_demo.id
+    version = "$Latest"
+  }
   max_size                  = var.autoscaling_group_max_size
   min_size                  = var.autoscaling_group_min_size
   vpc_zone_identifier       = aws_subnet.subnet_private.*.id
