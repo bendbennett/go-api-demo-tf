@@ -1,7 +1,3 @@
-locals {
-  app = "go-api-demo"
-}
-
 variable "autoscaling_group_desired_capacity" {
   type    = number
   default = 1
@@ -35,7 +31,7 @@ variable "certificate_arn" {}
 
 variable "cloudwatch_log_group_name" {
   type    = string
-  default = local.app
+  default = "go-api-demo"
 }
 
 variable "cloudwatch_log_group_retention_in_days" {
@@ -45,7 +41,7 @@ variable "cloudwatch_log_group_retention_in_days" {
 
 variable "ecs_cluster_name" {
   type    = string
-  default = local.app
+  default = "go-api-demo"
 }
 
 variable "ecs_service_container_grpc_port" {
@@ -75,12 +71,12 @@ variable "ecs_service_desired_count" {
 
 variable "ecs_service_name" {
   type    = string
-  default = local.app
+  default = "go-api-demo"
 }
 
 variable "ecs_task_definition_family" {
   type    = string
-  default = local.app
+  default = "go-api-demo"
 }
 
 variable "launch_template_instance_type" {
@@ -90,7 +86,7 @@ variable "launch_template_instance_type" {
 
 variable "load_balancer_name" {
   type = string
-  default = local.app
+  default = "go-api-demo"
 }
 
 variable "load_balancer_security_group_rules_cidr_blocks" {
