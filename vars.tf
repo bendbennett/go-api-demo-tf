@@ -1,8 +1,5 @@
 locals {
-  app = {
-    type    = string
-    default = "go-api-demo"
-  }
+  app = "go-api-demo"
 }
 
 variable "autoscaling_group_desired_capacity" {
